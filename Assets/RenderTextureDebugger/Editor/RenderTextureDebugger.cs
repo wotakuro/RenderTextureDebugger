@@ -48,7 +48,6 @@ namespace UTJ
             {
                 if (!IsRenderTextureIsForEditor(renderTexture, editorRenderTextures))
                 {
-
                     if (condition.Length == 0 || renderTexture.name.Contains(condition))
                     {
                         DrawTextureInfo(renderTexture, ref rect);
@@ -95,20 +94,51 @@ namespace UTJ
         {
             const int fontSize = 20;
             float originRectX = rect.x;
+            float offsetDepthTexture = ((textureHeightSize * renderTexture.width) / renderTexture.height) + 10.0f;
             // draw name
             rect.height = fontSize;
-            rect.width = 800;
+            rect.width = 400;
             sb.Length = 0;
             sb.Append(renderTexture.name).Append(" (").Append(renderTexture.format).Append(") size:").Append(renderTexture.width).Append("x").Append(renderTexture.height);
             sb.Append(" depth:").Append(renderTexture.depth);
 
             EditorGUI.LabelField(rect, sb.ToString());
-            rect.y += rect.height;
+
+            rect.y += rect.height + 5;
+            rect.width = 60;
+            // save Button
+
+            string defaultSaveFilename = renderTexture.name;
+            if (string.IsNullOrEmpty(defaultSaveFilename))
+            {
+                defaultSaveFilename = "RenderTexture";
+            }
+            if (GUI.Button(rect, "Save"))
+            {
+                string savePath = EditorUtility.SaveFilePanel("Select saveFile", "", defaultSaveFilename , "png");
+                if(!string.IsNullOrEmpty(savePath))
+                {
+                    SaveRenderTexture(renderTexture, savePath);
+                }
+            }
+            if (renderTexture.depth > 0)
+            {
+                rect.x += OffsetXForTexture + offsetDepthTexture;
+                if (GUI.Button(rect, "Save"))
+                {
+                    string savePath = EditorUtility.SaveFilePanel("Select saveFile", "", defaultSaveFilename + "_depth", "png");
+                    if (!string.IsNullOrEmpty(savePath))
+                    {
+
+                    }
+                }
+                rect.x -= (OffsetXForTexture + offsetDepthTexture);
+            }
+            rect.y += rect.height + 5;
 
             // draw texture
             rect.height = textureHeightSize;
             rect.width = (rect.height * renderTexture.width) / renderTexture.height;
-            float offsetDepthTexture = rect.width + 10.0f;
             rect.x += OffsetXForTexture;
 
             if (renderTexture.format != RenderTextureFormat.Depth)
@@ -159,5 +189,21 @@ namespace UTJ
             }
             return false;
         }
+
+        private void SaveRenderTexture(RenderTexture renderTexture, string file)
+        {
+            Texture2D tex = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.RGB24, false);
+            RenderTexture.active = renderTexture;
+            tex.ReadPixels(new Rect(0, 0, renderTexture.width, renderTexture.height), 0, 0);
+            tex.Apply();
+
+            // Encode texture into PNG
+            byte[] bytes = tex.EncodeToPNG();
+            Object.DestroyImmediate(tex);
+
+            //Write to a file in the project folder
+            System.IO.File.WriteAllBytes(file , bytes);
+        }
+
     }
 }
