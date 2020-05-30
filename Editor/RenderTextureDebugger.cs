@@ -16,7 +16,7 @@ namespace UTJ
             RenderTextureDebugger.GetWindow<RenderTextureDebugger>();
         }
 
-        private const int OffsetXForTexture = 10;
+        private const int OffsetXForTexture = 20;
         private Vector2 scrollPos;
         private StringBuilder sb = new StringBuilder(32);
         private Material depthMaterial;
@@ -36,28 +36,42 @@ namespace UTJ
 
             RenderTexture[] editorRenderTextures = Editor.FindObjectsOfType<RenderTexture>();
 
-            Rect rect = new Rect(10, 60, 400, 60);
-
-            rect.x = 10;
             int cnt = 0;
-            rect.x -= this.scrollPos.x;
-            rect.y -= this.scrollPos.y;
 
             string condition = this.searchStr.Trim();
             foreach (RenderTexture renderTexture in renderTextures)
             {
                 if (!IsRenderTextureIsForEditor(renderTexture, editorRenderTextures))
                 {
-                    if (condition.Length == 0 || renderTexture.name.Contains(condition))
-                    {
-                        DrawTextureInfo(renderTexture, ref rect);
-                    }
                     ++cnt;
                 }
             }
 
-            Rect windowRect = rect;
 
+
+            Rect rect =  EditorGUILayout.GetControlRect(GUILayout.Height(60));
+
+            // scroll bar
+            scrollPos = EditorGUILayout.BeginScrollView(scrollPos);
+
+            foreach (RenderTexture renderTexture in renderTextures)
+            {
+                if (!IsRenderTextureIsForEditor(renderTexture, editorRenderTextures))
+                {
+                    if (condition.Length == 0 || renderTexture.name.Contains(condition))
+                    {
+                        var drawRect = EditorGUILayout.GetControlRect(GUILayout.Height(textureHeightSize + 60));
+                        DrawTextureInfo(renderTexture, ref drawRect);
+                    }
+                    ++cnt;
+                }
+            }
+            EditorGUILayout.EndScrollView();
+            DrawHeader(ref rect, cnt);
+        }
+
+        private void DrawHeader(ref Rect rect,int cnt)
+        {
 
             // header info
             EditorGUI.DrawRect(new Rect(0, 0, 1024, 60), Color.gray);
@@ -81,13 +95,6 @@ namespace UTJ
             GUI.SetNextControlName("RenderTextureDebugger.searchStr");
             searchStr = GUI.TextArea(rect, searchStr);
             rect.x -= 50;
-
-            // scroll bar
-            scrollPos = EditorGUILayout.BeginScrollView(scrollPos);
-            GUILayoutUtility.GetRect(new GUIContent(string.Empty), GUIStyle.none, GUILayout.Width(windowRect.x + scrollPos.x + 10), GUILayout.Height(windowRect.y + scrollPos.y + 10));
-            EditorGUILayout.EndScrollView();
-
-
         }
 
         private void DrawTextureInfo(RenderTexture renderTexture, ref Rect rect)
@@ -104,7 +111,7 @@ namespace UTJ
 
             EditorGUI.LabelField(rect, sb.ToString());
 
-            rect.y += rect.height + 5;
+            rect.y += rect.height;
             rect.width = 60;
             // save Button
 
@@ -113,6 +120,8 @@ namespace UTJ
             {
                 defaultSaveFilename = "RenderTexture";
             }
+
+            rect.x += OffsetXForTexture;
             if (GUI.Button(rect, "Save"))
             {
                 string savePath = EditorUtility.SaveFilePanel("Select saveFile", "", defaultSaveFilename , "png");
@@ -123,7 +132,8 @@ namespace UTJ
             }
             if (renderTexture.depth > 0)
             {
-                rect.x += OffsetXForTexture + offsetDepthTexture;
+                rect.x += offsetDepthTexture;
+                /*
                 if (GUI.Button(rect, "Save"))
                 {
                     string savePath = EditorUtility.SaveFilePanel("Select saveFile", "", defaultSaveFilename + "_depth", "png");
@@ -132,8 +142,10 @@ namespace UTJ
 
                     }
                 }
-                rect.x -= (OffsetXForTexture + offsetDepthTexture);
+                */
+                rect.x -= offsetDepthTexture;
             }
+            rect.x -= OffsetXForTexture;
             rect.y += rect.height + 5;
 
             // draw texture
@@ -141,7 +153,7 @@ namespace UTJ
             rect.width = (rect.height * renderTexture.width) / renderTexture.height;
             rect.x += OffsetXForTexture;
 
-            if (renderTexture.format != RenderTextureFormat.Depth)
+            if (renderTexture.format != RenderTextureFormat.Depth && renderTexture.dimension != TextureDimension.Tex3D)
             {
                 EditorGUI.DrawTextureTransparent(rect, renderTexture);
                 rect.x += offsetDepthTexture;
@@ -192,7 +204,7 @@ namespace UTJ
 
         private void SaveRenderTexture(RenderTexture renderTexture, string file)
         {
-            Texture2D tex = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.RGB24, false);
+            Texture2D tex = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.RGBA32, false);
             RenderTexture.active = renderTexture;
             tex.ReadPixels(new Rect(0, 0, renderTexture.width, renderTexture.height), 0, 0);
             tex.Apply();
