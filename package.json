@@ -5,6 +5,7 @@
     "rendertexture"
   ],
   "name": "com.utj.debugger.rendertexture",
+  "displayName": "RenderTexture Debugger",
   "unity": "2018.4",
   "version": "1.0.0"
 }
