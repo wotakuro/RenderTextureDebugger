@@ -10,7 +10,7 @@ namespace UTJ
     public class RenderTextureDebugger : EditorWindow
     {
 
-        [MenuItem("Tools/RenderTextureDebugger")]
+        [MenuItem("Tools/UTJ/RenderTextureDebugger")]
         public static void Create()
         {
             RenderTextureDebugger.GetWindow<RenderTextureDebugger>();
