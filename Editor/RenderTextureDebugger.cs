@@ -27,6 +27,7 @@ namespace UTJ
 
         private int textureHeightSize = 100;
         private bool limitTextureHeight = true;
+        private bool flipY = false;
         private string searchStr = "";
         private int colorMode;
 
@@ -101,12 +102,35 @@ namespace UTJ
             EditorGUI.LabelField(rect, sb.ToString());
 
             rect.x = originX;
-            rect.y += 15;
+            rect.y += 20;
+
+
+            EditorGUI.LabelField(rect, "色空間");
+            rect.x += 40;
+            colorMode = EditorGUI.Popup(rect, colorMode, SelectList);
+
+            rect.x += 260;
+            EditorGUI.LabelField(rect, "depth");
+            rect.x += 40;
+            EditorGUI.MinMaxSlider(rect, ref depthMin, ref depthMax, 0.0f, 1.0f);
+
+
+            rect.x = originX;
+            rect.y += 20;
+
             EditorGUI.LabelField(rect, "size");
             rect.x += 50;
             textureHeightSize = EditorGUI.IntSlider(rect, textureHeightSize, 50, 512);
 
             rect.x += rect.width + 5;
+            flipY = EditorGUI.Toggle(rect, flipY);
+            rect.x += 15;
+            EditorGUI.LabelField(rect, "Y反転");
+
+            SetYFlip(this.drawMaterial, flipY);
+            SetYFlip(this.depthMaterial, flipY);
+
+            rect.x += 50;
             limitTextureHeight = EditorGUI.Toggle(rect, limitTextureHeight);
             rect.x += 15;
             EditorGUI.LabelField(rect, "Textureサイズ以上はいかない");
@@ -118,20 +142,30 @@ namespace UTJ
             rect.x += 50;
             GUI.SetNextControlName("RenderTextureDebugger.searchStr");
             searchStr = GUI.TextArea(rect, searchStr);
-            rect.x -= 50;
-            rect.y += 20;
 
-            EditorGUI.LabelField(rect,"色空間");
-            rect.x += 40;
-            colorMode = EditorGUI.Popup(rect, colorMode, SelectList);
 
-            rect.x += 260;
-            EditorGUI.LabelField(rect, "depth");
-            rect.x += 40;
-            EditorGUI.MinMaxSlider(rect, ref depthMin, ref depthMax, 0.0f, 1.0f);
+
+
             rect.x = originX;
             this.ApplyDepthParam(depthMin, depthMax);
 
+        }
+
+
+        private void SetYFlip(Material mat,bool flag)
+        {
+            const string Keyword = "FLIP_Y";
+            if (mat)
+            {
+                if (flag)
+                {
+                    mat.EnableKeyword(Keyword);
+                }
+                else
+                {
+                    mat.DisableKeyword(Keyword);
+                }
+            }
         }
 
         private void DrawTextureInfo(RenderTexture renderTexture, ref Rect rect,int texHeight)
@@ -171,16 +205,6 @@ namespace UTJ
             if (renderTexture.depth > 0)
             {
                 rect.x += offsetDepthTexture;
-                /*
-                if (GUI.Button(rect, "Save"))
-                {
-                    string savePath = EditorUtility.SaveFilePanel("Select saveFile", "", defaultSaveFilename + "_depth", "png");
-                    if (!string.IsNullOrEmpty(savePath))
-                    {
-
-                    }
-                }
-                */
                 rect.x -= offsetDepthTexture;
             }
             rect.x = originRectX;
@@ -279,6 +303,21 @@ namespace UTJ
                     this.drawMaterial.EnableKeyword("LINEAR_TO_GAMMMA");
                     break;
             }
+        }
+
+        private void SaveRenderTextureWithMaterial(RenderTexture src ,Material material ,string file)
+        {
+            if (!src) { return; }
+
+            var dest = RenderTexture.GetTemporary(src.descriptor);
+            CommandBuffer cmdBuffer = new CommandBuffer();
+            cmdBuffer.SetRenderTarget(dest);
+            cmdBuffer.ClearRenderTarget(true, true, new Color(0, 0, 0, 0));
+            cmdBuffer.Blit(src, dest, material);
+            Graphics.ExecuteCommandBuffer(cmdBuffer);
+            this.SaveRenderTexture(dest, file);
+
+            RenderTexture.ReleaseTemporary(dest);
         }
 
         private void SaveRenderTexture(RenderTexture renderTexture, string file)

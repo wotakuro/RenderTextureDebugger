@@ -18,6 +18,7 @@
             // from 2019.1...
             // #pragma multi_compile_local _ LINEAR_TO_GAMMMA GAMMA_TO_LINEAR
             #pragma multi_compile _ LINEAR_TO_GAMMMA GAMMA_TO_LINEAR
+            #pragma multi_compile _ FLIP_Y
             #include "UnityCG.cginc"
 
             struct appdata
@@ -40,6 +41,9 @@
                 v2f o;
                 o.vertex = UnityObjectToClipPos(v.vertex);
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);
+                #if FLIP_Y
+                o.uv.y = 1.0 - o.uv.y;
+                #endif
                 return o;
             }
 
