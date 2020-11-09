@@ -2,7 +2,9 @@
 {
 	Properties
 	{
-		_MainTex ("Texture", 2D) = "white" {}
+		_MainTex("Texture", 2D) = "white" {}
+		_MinParam("Min", Float) = 0.0
+		_MaxParam("Max", Float) = 1.0
 	}
 	SubShader
 	{
@@ -31,6 +33,9 @@
 
 			sampler2D _MainTex;
 			float4 _MainTex_ST;
+
+			float _MinParam;
+			float _MaxParam;
 			
 			v2f vert (appdata v)
 			{
@@ -45,6 +50,8 @@
 				// sample the texture
 				float raw_depth = SAMPLE_DEPTH_TEXTURE(_MainTex, i.uv);
 			    float linearized_depth = Linear01Depth(raw_depth);
+
+				linearized_depth = (linearized_depth - _MinParam) * ( 1 / (_MaxParam - _MinParam) );
 
 			    return float4(linearized_depth, linearized_depth, linearized_depth, 1);
 			}
