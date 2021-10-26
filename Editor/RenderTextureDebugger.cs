@@ -173,6 +173,7 @@ namespace UTJ
             const int fontSize = 20;
             float originRectX = rect.x;
             float offsetDepthTexture = ((texHeight * renderTexture.width) / renderTexture.height) + 10.0f;
+            if(offsetDepthTexture < 90) { offsetDepthTexture = 90; }
             // draw name
             rect.height = fontSize;
             rect.width = 400;
@@ -184,40 +185,29 @@ namespace UTJ
             EditorGUI.LabelField(rect, sb.ToString());
 
             rect.y += rect.height;
-            rect.width = 60;
+            rect.width = 80;
             // save Button
-
-            string defaultSaveFilename = renderTexture.name;
-            if (string.IsNullOrEmpty(defaultSaveFilename))
-            {
-                defaultSaveFilename = "RenderTexture";
-            }
-
             rect.x += OffsetXForTexture;
-            if (GUI.Button(rect, "Save"))
-            {
-                string savePath = EditorUtility.SaveFilePanel("Select saveFile", "", defaultSaveFilename , "png");
-                if(!string.IsNullOrEmpty(savePath))
-                {
-                    SaveRenderTexture(renderTexture, savePath);
-                }
-            }
-            if (renderTexture.depth > 0)
-            {
-                rect.x += offsetDepthTexture;
-                rect.x -= offsetDepthTexture;
-            }
+            var drawSaveBtnRect = rect;
+
             rect.x = originRectX;
             rect.y += rect.height + 5;
 
             // draw texture
             rect.height = texHeight;
-
             rect.width = (rect.height * renderTexture.width) / renderTexture.height;
+            if(rect.width > texHeight * 4)
+            {
+                rect.width = texHeight * 4;
+            }
             rect.x += OffsetXForTexture;
 
             if (renderTexture.format != RenderTextureFormat.Depth && renderTexture.dimension != TextureDimension.Tex3D)
             {
+                if (GUI.Button(drawSaveBtnRect, "Save"))
+                {
+                    RenderTextureSave.SaveWithDialog(renderTexture);
+                }
                 if (!drawMaterial)
                 {
                     drawMaterial = new Material(Shader.Find("Unlit/DebugColorSpace"));
@@ -230,6 +220,12 @@ namespace UTJ
 
             if (renderTexture.depth > 0)
             {
+                drawSaveBtnRect.x = rect.x;
+                if (GUI.Button(drawSaveBtnRect, "SaveDepth"))
+                {
+                    // todo
+                    RenderTextureSave.SaveRenderTextureDepth(renderTexture);
+                }
                 // draw depth texture
                 if (!depthMaterial)
                 {
@@ -241,7 +237,6 @@ namespace UTJ
 
             rect.y += rect.height + 5;
             rect.x = originRectX;
-
         }
 
 
@@ -305,35 +300,7 @@ namespace UTJ
             }
         }
 
-        private void SaveRenderTextureWithMaterial(RenderTexture src ,Material material ,string file)
-        {
-            if (!src) { return; }
 
-            var dest = RenderTexture.GetTemporary(src.descriptor);
-            CommandBuffer cmdBuffer = new CommandBuffer();
-            cmdBuffer.SetRenderTarget(dest);
-            cmdBuffer.ClearRenderTarget(true, true, new Color(0, 0, 0, 0));
-            cmdBuffer.Blit(src, dest, material);
-            Graphics.ExecuteCommandBuffer(cmdBuffer);
-            this.SaveRenderTexture(dest, file);
-
-            RenderTexture.ReleaseTemporary(dest);
-        }
-
-        private void SaveRenderTexture(RenderTexture renderTexture, string file)
-        {
-            Texture2D tex = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.RGBA32, false,false);
-            RenderTexture.active = renderTexture;
-            tex.ReadPixels(new Rect(0, 0, renderTexture.width, renderTexture.height), 0, 0);
-            tex.Apply();
-
-            // Encode texture into PNG
-            byte[] bytes = tex.EncodeToPNG();
-            Object.DestroyImmediate(tex);
-
-            //Write to a file in the project folder
-            System.IO.File.WriteAllBytes(file , bytes);
-        }
 
     }
 }
