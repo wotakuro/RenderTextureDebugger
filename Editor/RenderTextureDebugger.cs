@@ -78,9 +78,14 @@ namespace UTJ
                         {
                             ysize = (int)Mathf.Min(textureHeightSize, renderTexture.height);
                         }
-
-                        var drawRect = EditorGUILayout.GetControlRect(GUILayout.Height(ysize + 60));
-                        DrawTextureInfo(renderTexture, ref drawRect,ysize);
+                        try
+                        {
+                            var drawRect = EditorGUILayout.GetControlRect(GUILayout.Height(ysize + 60));
+                            DrawTextureInfo(renderTexture, ref drawRect, ysize);
+                        }catch(System.Exception e)
+                        {
+                            Debug.LogError(e);
+                        }
                     }
                     ++cnt;
                 }
