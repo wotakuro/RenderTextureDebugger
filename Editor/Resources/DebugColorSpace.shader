@@ -1,4 +1,4 @@
-﻿Shader "Unlit/DebugColorSpace"
+﻿Shader "Hidden/RendeerTextureDebug/DebugColorSpace"
 {
     Properties
     {

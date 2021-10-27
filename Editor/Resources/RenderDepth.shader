@@ -1,4 +1,4 @@
-﻿Shader "UTJ/RenderDepthDebugger/RenderDepth"
+﻿Shader "Hidden/RendeerTextureDebug/RenderDepth"
 {
 	Properties
 	{

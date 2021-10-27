@@ -12,7 +12,7 @@ namespace UTJ
 #if UNITY_2020_2_OR_NEWER
         public static void SaveRenderTextureDepth(RenderTexture src)
         {
-            var depthMaterial = new Material(Shader.Find("UTJ/RenderDepthDebugger/RenderDepth"));
+            var depthMaterial = new Material(Shader.Find("Hidden/RendeerTextureDebug/RenderDepth"));
 
             depthMaterial.SetFloat("_MinParam", 0.0f);
             depthMaterial.SetFloat("_MaxParam", 1.0f);

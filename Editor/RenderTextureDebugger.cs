@@ -215,7 +215,7 @@ namespace UTJ
                 }
                 if (!drawMaterial)
                 {
-                    drawMaterial = new Material(Shader.Find("Unlit/DebugColorSpace"));
+                    drawMaterial = new Material(Shader.Find("Hidden/RendeerTextureDebug/DebugColorSpace"));
                 }
                 ChangeDrawMode(colorMode);
                 EditorGUI.DrawPreviewTexture(rect, renderTexture, drawMaterial);
@@ -234,7 +234,7 @@ namespace UTJ
                 // draw depth texture
                 if (!depthMaterial)
                 {
-					depthMaterial = new Material(Shader.Find("UTJ/RenderDepthDebugger/RenderDepth"));
+					depthMaterial = new Material(Shader.Find("Hidden/RendeerTextureDebug/RenderDepth"));
                 }
                 depthMaterial.mainTexture = renderTexture;
                 EditorGUI.DrawPreviewTexture(rect, renderTexture, depthMaterial);
